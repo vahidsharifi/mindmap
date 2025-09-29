@@ -46,28 +46,20 @@ async function getSecret(secretName) {
 }
 
 /**
- * Loads multiple secrets from Secret Manager and sets them as environment variables.
- * This function will NOT overwrite existing environment variables.
- * @param {string[]} secretKeys - An array of secret names to fetch (e.g., ['OPENAI_API_KEY', 'GEMINI_API_KEY']).
+ * Loads multiple secrets from environment variables directly (no Secret Manager).
+ * This is more cost-effective and still secure with Cloud Run.
+ * @param {string[]} secretKeys - An array of secret names to check (e.g., ['OPENAI_API_KEY', 'GEMINI_API_KEY']).
  */
 async function loadSecretsIntoEnv(secretKeys) {
-    console.log("Secret Service: Starting to load secrets into environment...");
+    console.log("Secret Service: Checking environment variables...");
     for (const key of secretKeys) {
-        // If the variable is already set in the environment (e.g., from a local .env file), skip fetching it.
         if (process.env[key]) {
-            console.log(`Secret Service: Environment variable '${key}' already set. Skipping fetch from Secret Manager.`);
-            continue;
-        }
-
-        const value = await getSecret(key);
-        if (value) {
-            process.env[key] = value;
-            console.log(`Secret Service: Environment variable '${key}' loaded from Secret Manager.`);
+            console.log(`Secret Service: Environment variable '${key}' is available.`);
         } else {
-            console.warn(`Secret Service: Could not fetch secret for '${key}'. The application may not function correctly if this key is required.`);
+            console.warn(`Secret Service: Environment variable '${key}' is missing. The application may not function correctly.`);
         }
     }
-    console.log("Secret Service: Finished loading secrets.");
+    console.log("Secret Service: Finished checking environment variables.");
 }
 
 module.exports = { loadSecretsIntoEnv };
